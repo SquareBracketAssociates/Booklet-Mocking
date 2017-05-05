@@ -2,3 +2,5 @@
 ${inputFile:Chapters/BabyMock/BabyMock.pillar}$
 
 ${inputFile:Chapters/Mocketry/Mocketry.pillar}$
+
+${inputFile:Chapters/StateSpecs/StateSpecs.pillar}$

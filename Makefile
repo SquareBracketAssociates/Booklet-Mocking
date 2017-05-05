@@ -2,6 +2,7 @@ MAIN = book
 CHAPTERS = \
 	Chapters/Mocketry/Mocketry \
 	Chapters/BabyMock/BabyMock \
+	Chapters/StateSpecs/StateSpecs \
 
 OUTPUTDIRECTORY = build
 LATEXTEMPLATE = support/templates/main.latex.mustache
