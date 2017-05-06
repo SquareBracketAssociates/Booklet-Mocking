@@ -1,13 +1,18 @@
 !! StateSpec
 
-StateSpecs is object state specification framework. It describes particular object states by first class specifications. 
-For example there are SpecOfCollectionItem, SpecOfObjectClass and SpecOfObjectSuperclass. 
+StateSpecs is object state specification framework. It describes particular object states by first class specifications.
+For example there are SpecOfCollectionItem, SpecOfObjectClass and SpecOfObjectSuperclass.
 
-!!! How to load it
+[[[
+Gofer it
+   smalltalkhubUser: 'dionisiy' project: 'Mocketry';
+   configurationOf: 'Mocketry';
+   loadStable
+]]]
 
 @@todo explain how to load it.
 
-!!! Basic 
+!!! Basic
 
 @@todo how to get it work? should we define a test? how?
 
