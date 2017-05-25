@@ -11,3 +11,5 @@ For the moment the booklet is on draft mode soon we will get updated versions.
  
 [Browse] the directory for released versions of the booklet or
 look here for more [Books and Booklets](http://books.pharo.org/)
+
+PDF are https://ci.inria.fr/pharo-contribution/view/Books/job/Booklet-Mocking/
