@@ -1,10 +1,15 @@
 !! Mocketry
 
-Mocketry is an alternate mock framework developed by Denis Kudriashov. Mocketry is mock objects framework. It provides simplest way to stub any message to any object and to verify any occurred behaviour. 
+Mocketry is an alternate mock framework developed by Denis Kudriashov. It provides simplest way to stub any message to any object and to verify any occurred behaviour.
 
 !!! How to install Mocketry?
 
-@todo explain here
+[[[
+Gofer it
+   smalltalkhubUser: 'dionisiy' project: 'Mocketry';
+   configurationOf: 'Mocketry';
+   loadStable
+]]]
 
 !!! Create mocks easily
 To create mock just use ""new""
@@ -32,10 +37,12 @@ Also there is way to get multiple mocks at once:
 !!! Stub any message sends
 @stubMessageSends
 
-To stub a message send just send message ""stub"" to an object and the following message will create an expectation:
+To stub a message send just send message ""stub"" to an object and the following message will create an expectation.
 
-Once you have a stub object and send it the message ==stub==, you can then send it messages such as ==willReturn:== and ==should be:== to 
-verify certain condition as follows: 
+@@todo we should rewrite it
+
+Once you have a stub object and send it the message ==stub==, you can then send it messages such as ==willReturn:== and ==should be:== to
+verify certain condition as follows:
 
 [[[
 mock := Mock new.
@@ -70,7 +77,7 @@ rect area should be: 300.
 
 !!!! Stubbing classes
 
-And you can do this with globals and classes too but this can be dangerous. 
+And you can do this with globals and classes too but this can be dangerous.
 [[[
 DateAndTime stub now willReturn: #constantValue.
 
@@ -82,7 +89,7 @@ But you should be carefull with classes and globals. Don't try
 Array stub new.
 ]]]
 
-It will crash image because stub performs some black magic so that the object 
+It will crash image because stub performs some black magic so that the object
 understands the mocking messages and ==Array== is not a class that can be modified because it is central to the execution engine.
 
 Now for the classes that are stubbed, you can turn them back to their default status (we call this behavior to recover).
@@ -105,7 +112,7 @@ Any stub width willReturn: 100.
 
 
 
-Or you can stub ""ANY message"" to particular a particular object:
+Or you can stub ""ANY message"" to particular object:
 [[[
 mock := Mock new.
 
@@ -224,14 +231,14 @@ mock someMessage "will fail immediately on call by first condition: flag should 
 !!! Process condition
 
 Mocketry implements process related condition to check that a message was synchronously sent (relative to test process).
-Using the messages ==shouldOccurInThisProcess== and ==shouldOccurInAnotherProcess==, you can control the process where the execution 
+Using the messages ==shouldBeSentInThisProcess== and ==shouldBeSentInAnotherProcess==, you can control the process where the execution
 of the test should happen.
 
 [[[
-mock stub someMessage shouldOccurInThisProcess.
+mock stub someMessage shouldBeSentInThisProcess.
 [ mock someMessage ] fork. "will fail immediately on call".
 
-mock stub someMessage shouldOccurInAnotherProcess.
+mock stub someMessage shouldBeSentInAnotherProcess.
 [ mock someMessage ] fork. "will not fail".
 mock someMessage. "will fail immediately on call"
 ]]]
@@ -525,7 +532,7 @@ mock someMessage ] should beDone.
 rect width ] should beDoneInOrder.
 ]]]
 
-Messages 
+Messages
 - ""beDone"" don't care about order of message sends.
 
 - ""beDoneInOrder"" verifies that messages were set in same order as they defined inside given block
