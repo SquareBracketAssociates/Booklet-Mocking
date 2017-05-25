@@ -6,3 +6,8 @@ For the moment the booklet is on draft mode.
 
 [travis]: https://travis-ci.org/SquareBracketAssociates/Booklet-Mocking
 [badge]: https://travis-ci.org/SquareBracketAssociates/Booklet-Mocking.svg?branch=master
+
+
+ 
+[Browse] the directory for released versions of the booklet or
+look here for more [Books and Booklets](http://books.pharo.org/)
