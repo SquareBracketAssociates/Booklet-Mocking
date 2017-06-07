@@ -1,14 +1,18 @@
 sudo: required
 services:
 - docker
+
 before_install:
 - docker pull dpollet/texlive:pillar
+
 script:
-- docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar make book
+- docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar make pdfbook spiralbook
+
 deploy:
   provider: releases
   api_key:
     secure: CdXv8nKaauMyDQZDJRLeuI3xoTI00uZaKYEFceii689Eq+wbUuhpSkI8qY/YGf7SVdPVOSSXEfdfToA5s792VoRC94k2wbSVTqcBlg7L1oVC4pml0tJMjnf2vWdzME5H4jqsXHdS4sfTew2jebGwp9j/KsV2BYZcca6ZdKGp/eAWrXZ7nD0UaFpwx+vqOXyqflxBrw9R+45vxGTqSCXvimCwR3SERi1sGOO3r16pV+BP8IXec5vE+zLByLWkigEJHJsDeeiANxmR2nfm8+C9IawJgZtAuj9lYpymqRH3GKyW14KdlQQvyHVgUkfjU6mDUOQ7a1ayQruvhDdxiZN/grxRAa9EbiACfgIP1ovc9EqwW/bt/9jot1BAqxOV5G+5kosm4ifbnrO9gL/ZAhlMepSe0o/F4Sk+xJdq99gTQ7RaNSX2de6Nt+V0WPMajJHwm1J4ifbcJSrdORHvlgaSin+RcvWcHBIDDJzpZxtloV/ulNPg23yHlI9ntiwxc+ePzSk2R59h6yuvgtrbHMK26IONXyDcdFWeoQUKS6YxMikg/WY0wzhXIDJkVKCQb7DbjK6wzUpebDEkzPH5pPxUxLprxeiSMjKz8crO5tUhfugQTXjGFvf3dFhUAMxPOlzV/HIT1R/L4QE8BlB6MBvjihtzdZUBojK2w/V/KvlwDrU=
-  file: build/book.pdf
+  file: build/mocking.pdf
+  draft: true
   on:
     repo: SquareBracketAssociates/Booklet-Mocking

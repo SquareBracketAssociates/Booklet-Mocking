@@ -1,4 +1,4 @@
-MAIN = book
+MAIN = mocking
 CHAPTERS = \
 	Chapters/Mocketry/Mocketry \
 	Chapters/BabyMock/BabyMock \
