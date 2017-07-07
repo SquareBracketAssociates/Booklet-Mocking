@@ -17,6 +17,7 @@ Test-Driven Development is a software development technique in which programmers
 
 [[[
 result := calculator add: 'V' to: 'VII'.
+
 result should equal: 'XII'.
 ]]]
 
@@ -24,14 +25,20 @@ And the ones where you assert that an object sent the correct message to an othe
 
 [[[
 publisher publish: testEvent.
+
 subscriber should receive eventReceived: testEvent.
 ]]]
 
-Mock library also provides tools to specify expected behaviour of interacting objects:
+Mock library also provides tools to specify expected behaviour of interacting objects to simulate particular test case:
 
 [[[
-(subscriber stub eventReceived: testEvent) willRaise: Error new.
-publisher publish: testEvent.
+order := Order on: 50 of: #product.
+warehouse := Mock new.
+(warehouse stub has: 50 of: #product) willReturn: true.
+
+order fillFrom: warehouse.
+
+warehouse should receive remove: 50 of: #product.
 ]]]
 
 !!!! TDD is not just about testing
@@ -63,14 +70,16 @@ But if you need special name you can specify it:
 Mock named: 'yourMock'
 ]]]
 
-You can look at it lively in MockTests.
-
 Also there is way to get multiple mocks at once:
 [[[
 [ :mockA :mockB | "your code here" ] runWithMocks
 ]]]
 
-Now In the following sections, we will develop a complete sample application written with TDD.
+Then to specify expected behaviour for mock just send ==stub== message to it. Following expression will be recorded as expectation.
+And to verify what was going on with objects just send ==should receive== messages and following expression will be verified.
+Look at *@stubMessageSends* section for all detailes on Mocketry API.
+
+Now In the next sections, we will develop a complete sample application written with TDD.
 
 !!!! A simple shopping cart
 
@@ -93,7 +102,7 @@ ShoppingCartTest >> testNoChargeWhenCartIsEmpty
 	creditCard should not receive charge: Any.
 ]]]
 
-The ==creditCard== is a dependency for the shopping cart, so we pass it through a constructor method. Then we trigger the behavior we want to test by sending a ==checkout== message to the shopping cart. And at the end we check our expected behaviour - credic card should not be charged by any amount because nothing exists in the cart.
+The ==creditCard== is a dependency for the shopping cart, so we pass it through a constructor method. Then we trigger the behavior we want to test by sending a ==checkout== message to the shopping cart. And at the end we check our expected behaviour - credit card should not be charged by any amount because nothing exists in the cart.
 
 And empty implementation of ==checkout== method will pass the test:
 
@@ -112,11 +121,10 @@ Let's create a mocked ==priceCatalog== and move the initialization of the shoppi
 
 [[[
 ShoppingCartTest > >setUp
-	priceCatalog := context mock: 'price catalog'.
-	creditCard := context mock: 'credit card'.
-	cart := ShoppingCart
-		payment: creditCard
-		catalog: priceCatalog.
+  super setUp.
+	priceCatalog := Mock new.
+	creditCard := Mock new.
+	cart := ShoppingCart catalog: priceCatalog payment: creditCard.
 ]]]
 
 We converted the ==cart== and ==creditCard== temporary variables to instance variables because we are using them in both tests.
@@ -125,11 +133,12 @@ Now we can setup and use the ==priceCatalog== without worrying about its interna
 
 [[[
 ShoppingCartTest >> testChargingCardAfterBuyingOneProduct
-	priceCatalog can receive: #priceOf:; with: #sku1; answers: 80.
-	creditCard should receive: #charge:; with: 80.
+	(priceCatalog stub priceOf: #sku1) willReturn: 80.
 
 	cart addSKU: #sku1.
 	cart checkout.
+
+  (creditCard should receive charge: 80) once.
 ]]]
 
 This test will fail if:
@@ -137,15 +146,14 @@ This test will fail if:
 -the ==charge:== is not sent to the ==creditCard== during the test.
 -the ==charge:== is sent more than once.
 -the argument of the ==charge:== is different than 80.
--an unexpected message is sent to the ==creditCard== or to the ==priceCatalog==.
 
 This test gives us our first failure:
 
-''credit card received <charge: 80> 0 time(s), but was expected exactly once''
+'''a Mock(creditCard) never received charge: 80'''
 
-BabyMock complains about the missing ==charge:== message, but it doesn't say anything about the ==priceOf:==. BabyMock allows one to specify whether a message must be received or simply can be received. The first one uses ==should== while the second uses the message ==can==. Without this distinction the test would be less readable and more brittle. Let's imagine we're introducing a price caching mechanism in the shopping cart. So after we asked the price of a product we store it and next time we won't ask it again. This likely would cause test failures if we'd use exact expectations (==should==), even if the shopping cart would work correctly. Charging the credit card twice would be a serious mistake, but querying the product price twice is an implementation detail.
-
-Here is a simple rule to follow: allow (with ==can==) queries that return values and expect (with ==should==) commands that make objects to do some side effect. Of course, this is an oversimplified rule that does not hold all the time, but in can be useful in many cases.
+Notice that Mocketry complains only about the missing ==charge:== message. It doesn't care about the ==priceOf:==. Stubbed behaviour is only used to simulate reaction of system on particular messages. Stubs do not add any requirements to tested behaviour. If business rules will require to check catalog for every ==checkout== operation then we will add extra assertion in our test. Or better we will add separate test to describe this aspect of system. But right now we don't care about it.
+Also imagine we're introducing a price caching mechanism in the shopping cart. So after we asked the price of a product we store it and next time we won't ask it again. This will not break our test.
+Charging the credit card twice would be a serious mistake and Mocketry will report this failure. But querying the product price twice is an implementation detail.
 
 The following implementation passes the test.
 
@@ -175,20 +183,25 @@ The shopping cart that can hold only one product isn't particularly useful. The 
 
 [[[
 ShoppingCartTest >> testChargingCardAfterBuyingManyProducts
-	priceCatalog can receive: #priceOf:; with: #sku1; answers: 10.
-	priceCatalog can receive: #priceOf:; with: #sku2; answers: 30.
-	priceCatalog can receive: #priceOf:; with: #sku3; answers: 50.
-	creditCard should receive: #charge:; with: 90.
-
+	(priceCatalog stub priceOf: #sku1) willReturn: 10.
+  (priceCatalog stub priceOf: #sku2) willReturn: 30.
+  (priceCatalog stub priceOf: #sku3) willReturn: 50.
 	cart addSKU: #sku1.
 	cart addSKU: #sku2.
 	cart addSKU: #sku3.
+
 	cart checkout.
+
+  creditCard should receive charge: 90.
 ]]]
 
 This generates a failure message:
 
-'''credit card received message: <charge:> with different arguments: #(50)'''.
+'''a Mock(creditCard) never received charge: 90'''.
+
+And in debugger you can see what messages was actually sent between objects. For this select top item on stack pane of debugger. And then select ==subject== on variables pane. It will show single message:
+
+'''a Mock(creditCard) charge: 50 returned default mock(73422)'''.
 
 The shopping cart keeps the last SKU only that's why it reports the wrong price. First we rename the ==sku== instance variable to ==skus== and intialize it to an empty ==OrderedCollection==.
 
@@ -218,22 +231,19 @@ Refactoring is part of TDD. We should check after each test if there is anything
 [[[
 ShoppingCartTest >> testChargingCardAfterBuyingManyProducts
 	self prices: {#sku1 -> 10. #sku2 -> 30. #sku3 -> 50}.
-	creditCard should receive: #charge:; with: 90.
-
-	cart addSKU: #sku1.
+  cart addSKU: #sku1.
 	cart addSKU: #sku2.
 	cart addSKU: #sku3.
+
 	cart checkout.
+
+  creditCard should receive charge: 90.
 ]]]
 
 [[[
 ShoppingCartTest >> prices: associations
-	associations do:
-		[:each |
-			priceCatalog
-				can receive: #priceOf:;
-				with: each key;
-				answers: each value].
+	associations do: [:each |
+			(priceCatalog stub priceOf: each key) willReturn each value].
 ]]]
 
 Then extract the ==orderPrice== calculation into a new method:
@@ -256,12 +266,13 @@ The shopping cart should provide methods for removing a product. We don't want t
 [[[
 ShoppingCartTest >> testProductRemovalReflectedInPrice
 	self prices: {#sku1 -> 30. #sku2 -> 70.}.
-	creditCard should receive: #charge:; with: 30.
-
 	cart addSKU: #sku1.
 	cart addSKU: #sku2.
 	cart removeSKU: #sku2.
-	cart checkout.
+
+  cart checkout.
+
+  creditCard should receive charge: 30.
 ]]]
 
 Making the test pass is fairly simple.
@@ -276,17 +287,27 @@ ShoppingCart >> removeSKU: aSymbol
 We know that there are rules for calculating the discount price. Those rules take the total order amount into account. Luckily we don't need to worry about what exactly the rules are. Let's introduce a new mock that will play the role of the ==DiscountCalculator==.
 
 [[[
-ShoppingCartTest >> testChargingCardWithDiscount
-	self prices: {#sku1 -> 20. #sku2 -> 30}.
-	discountCalculator can receive: #calculateDiscount:; with: 50; answers: 10.
-	creditCard should receive: #charge:; with: 40.
-
-	cart addSKU: #sku1.
-	cart addSKU: #sku2.
-	cart checkout.
+ShoppingCartTest > >setUp
+  super setUp.
+	priceCatalog := Mock new.
+  discountCalculator := Mock new.
+	creditCard := Mock new.
+	cart := ShoppingCart catalog: priceCatalog discount: discountCalculator payment: creditCard.
 ]]]
 
-BabyMock complains that the ==creditCard== was charged with an incorrect price (50 instead of 40). We need to subtract the ==discountPrice== from the ==orderPrice== to make the test pass.
+[[[
+ShoppingCartTest >> testChargingCardWithDiscount
+	self prices: {#sku1 -> 20. #sku2 -> 30}.
+	(discountCalculator stub calculateDiscount: 50) willReturn: 10.
+	cart addSKU: #sku1.
+	cart addSKU: #sku2.
+
+  cart checkout.
+
+  creditCard should receive charge: 40.
+]]]
+
+Mocketry complains that the ==creditCard== was charged with an incorrect price (50 instead of 40). We need to subtract the ==discountPrice== from the ==orderPrice== to make the test pass.
 
 [[[
 ShoppingCart >> checkout
@@ -302,62 +323,38 @@ ShoppingCart >> discountPrice: orderPrice
 	^ discountCalculator calculateDiscount: orderPrice
 ]]]
 
-Now the last test passed but some of the other tests are failing because we didn't expect the interaction with the ==discountCalculator== there. Let's fix these tests by adding a ==self noDiscount== to the them.
+Now the last test passed.
 
-[[[
-ShoppingCartTest>>noDiscount
-	discountCalculator can receive: #calculateDiscount:; answers: 0.
-]]]
+Interesting that other tests will pass too while we are not mentioned ==discountCalculator== there. In these tests ==calculateDiscount:== message will be sent to mock object without explicit stub for it. In such cases (when stub behaviour is not specified) Mocketry returns new special mock as result of message. This mock plays role of zero in arithmetic operations and false in boolean logic. And in our case it will lead to zero result of ==calculateDiscount:==.
+It is very usefull behaviour which makes tests less brittle and allows to specify only needed requirement for given aspect of functionality. In our first tests we don't care about discount and tests continue work without it.
 
 !!!! Reusing the cart for different sales
 
-We want the shopping cart to unload itself after the checkout so we'll able to reuse the same instance over and over. We'll simulate two separated purchase in the next test to verify this behaviour. This will trigger two ==charge== messages. We'll check if the correct price is sent when the shopping cart is in the correct state (==firstPurchase== or ==secondPurchase==).
-
-BabyMock provides a mechanism to define a state-machine which makes testing scenarios like this easier.
-
-[[[
-state := context states: 'state name' startsAs: #state1.
-]]]
-
-The first argument is the name of the states and the second is the initial state. You can check that an interaction happened in the expected state as follows.
-
-[[[
-mock should receive: #msg; when: state is: #state1.
-]]]
-
-This will change the state of state-machine to the ==#state2== state when the interaction occurs.
-
-[[[
-mock should receive: #msg; then: state is: #state2.
-]]]
-
-Here is our new test that uses the state-machine.
+We want the shopping cart to unload itself after the checkout so we'll able to reuse the same instance over and over. We'll simulate two separated purchase in the next test to verify this behaviour. This will trigger two ==charge:== messages. We'll check if the correct price is sent when the shopping cart is in the correct state (==firstPurchase== or ==secondPurchase==).
 
 [[[
 ShoppingCartTest>>testUnloadsItselfAfterCheckout
 	|purchase|
-	self prices: {#sku1 -> 10. #sku2 -> 30}; noDiscount.
-	purchase := context states: 'purchase' startsAs: #firstPurchase.
-
-	creditCard should
-		receive: #charge:; with: 10;
-		when: purchase is: #firstPurchase;
-		then: purchase is: #secondPurchase.
-	creditCard should
-		receive: #charge:; with: 30;
-		when: purchase is: #secondPurchase.
-
+	self prices: {#sku1 -> 10. #sku2 -> 30}.
 	cart addSKU: #sku1.
 	cart checkout.
 	cart addSKU: #sku2.
 	cart checkout.
+
+  [creditCard receive charge: 10.
+  creditCard receive charge: 30] should beDoneInOrder
 ]]]
 
-Now, this is equivalent of a simple ordering test (==charge: 10== must come before ==charge: 30==). But states are more powerful because you can loosen the ordering constraints. This makes possible to express scenarios like one event should happen first and others must follow it in any order.
+==should beDoneInOrder== expression verifies that messages were sent and it was happen in same order as defined in given block.
 
 The test generates a failure message:
 
-'''credit card received message: <charge:> with different arguments: #(40)'''.
+'''a Mock(creditCard) never received charge: 30'''.
+
+And in debugger you can see actual messages:
+
+'''a Mock(creditCard) charge: 10 returned default mock(73422)'''.
+'''a Mock(creditCard) charge: 40 returned default mock(34614)'''.
 
 But cleaning the ==skus== collection in the ==checkout== fixes the test.
 
@@ -375,47 +372,24 @@ ShoppingCart>>checkout
 
 We expect the ==creditCard== to report ==PaymentError== when the payment was unsuccessful. When this happens, the shopping cart should not forget the content because we may want to retry the checkout later.
 
-!!!!! Consecutive messages
-
-Sometimes we need to setup the mock to return different values (or to signal different exceptions) for the same message.
-
-[[[
-iterator can
-	receive: #next;
-	answers: 1;
-	answers: 2;
-	signals: NoMoreElement.
-]]]
-
-The first message sent to the iterator returns 1, while the second returns 2. On the third time it will signal ==NoMoreElement==.
-
-[[[
-iterator next. "returns 1"
-iterator next. "returns 2"
-iterator next. "signals NoMoreElement"
-]]]
-
-!!!!! Successful payment after failure
-
 In the next test case we'll send two ==checkout== message to the shopping cart, whereof the first will fail. The ==creditCard== will signal ==PaymentError== then answer ==true== consecutively.
 
 [[[
 ShoppingCartTest>>testFirstPaymentFailedSecondSucceed
-	self prices: {#sku -> 25}; noDiscount.
-	creditCard should
-		receive: #charge:; with: 25;
-		exactly: #twice;
-		signals: PaymentError;
-		answers: true.
+	self prices: {#sku -> 25}.
+  cart addSKU: #sku.
 
-	cart addSKU: #sku.
-	self should: [cart checkout] raise: PaymentError.
+  (creditCard stub charge: 25) willRaise: PaymentError new.
+	[cart checkout] should raise: PaymentError.
+
+  (creditCard stub charge: Any) willReturn: true.
 	cart checkout.
+  (creditCard should receive charge: 25) twice.
 ]]]
 
 The failure report is:
 
-''credit card received <charge: 25> 1 time(s), but was expected exactly 2 times''
+'''a Mock(creditCard) should receive charge: 10 2 times but it was 1 times'''
 
 The test failed because we clean the ==skus== collection before charging the credit card. So after the first checkout the shopping cart is empty, and the second time it won't charge the credit card.
 
@@ -441,7 +415,7 @@ For example we may want to use a simple in-memory object for the ==priceCatalog=
 PriceCatalogDictionaryTest >> testKnowsThePriceOfAproduct
 	| catalog |
 	catalog := PriceCatalogDictionary withPrices {#sku1 -> 10}.
-	self assert catalog priceOf: #sku1 equals: 10.
+	(catalog priceOf: #sku1) should equal: 10.
 ]]]
 
 Another implementation might be an HTTP based remote price catalog which would use a REST web service to find out the price.
@@ -461,7 +435,8 @@ We could mock the http client to test the ==RemoteHttpPriceCatalog== but it woul
 We'll leave those as an exercise for the reader.
 
 
-!!! Mocketry overview
+!!! Features overview
+@overview
 !!!! Create mocks easily
 To create mock just use ""new""
 [[[
@@ -488,9 +463,9 @@ Also there is way to get multiple mocks at once:
 !!!! Stub any message sends
 @stubMessageSends
 
-To stub a message send just send message ""stub"" to an object and the following message will create an expectation.
+To stub a message send just send message ""stub"" to an object and the following message send will create an expectation.
 
-@@todo we should rewrite it
+@@todo I not understand why following example is not enough to demonstrate previous sentence. I would stay only example
 
 Once you have a stub object and send it the message ==stub==, you can then send it messages such as ==willReturn:== and ==should be:== to
 verify certain condition as follows:
@@ -501,32 +476,21 @@ mock stub someMessage willReturn: 100.
 mock someMessage should be: 100.
 ]]]
 
-
-
 You can stub any objects. It is not only about mocks:
 [[[
 rect := 0@0 corner: 2@3.
 rect stub width willReturn: 1000.
 
-rect area should be: 3000 "are = width * height"
+rect area should be: 3000 "area = width * height"
 ]]]
 
-
-[[[
-mock := Mock new.
-mock width should be: 100.
-
-rect := 0@0 corner: 2@3.
-rect stub
-
-]]]
 Note that ==stub== message activates,  message interception for real objects. Without it following sentence will not work.
 
 [[[
 rect area should be: 300.
 ]]]
 
-!!!!! Stubbing classes
+!!!! Stubbing classes
 
 And you can do this with globals and classes too but this can be dangerous.
 [[[
@@ -631,30 +595,52 @@ mock := Mock new.
 ]]]
 
 !!!! Expected actions for stubs
-There are different kind of expected actions:
+There are different kind of expected actions
 
-@@todo please explain them.
+@@todo look.
+
+!!!!! Return value from message
 
 [[[
-mock := Mock new.
-
 mock stub someMessage willReturn: #result.
 mock someMessage should be: #result.
+]]]
 
+!!!!! Raise error on message send
+
+[[[
 mock stub someMessage willRaise: ZeroDivide new.
 [mock someMessage] should raise: ZeroDivide.
+]]]
 
+!!!!! Evaluate block on message send and return it result
+
+[[[
 (mock stub someMessageWith: #arg) will: [ #result ].
 (mock someMessageWith: #arg) should be: #result.
+]]]
 
+Given block can accept argument of message in original order:
+
+[[[
 (mock stub someMessageWith: #arg1 and: #arg2) will: [:arg1 :arg2 | arg1, arg2].
 (mock someMessageWith: #arg1 and: #arg2) should equal: 'arg1arg2'.
+]]]
 
+!!!!! Return values for subsequent series of messages
+
+[[[
 mock stub someMessage willReturnValueFrom: #(result1 result2).
 mock someMessage should be: #result1.
 mock someMessage should be: #result2
 ]]]
 
+!!!!! Return receiver of message
+
+[[[
+mock stub someMessage willReturnYourself.
+mock someMessage should be: mock.
+]]]
 
 !!!!Extra conditions on message sends
 
@@ -676,7 +662,7 @@ flag := #flag.
 mock someMessage "will fail immediately on call by first condition: flag should be boolean"
 ]]]
 
-@@todo I do not get the flag should be boolean
+@@todo I do not get the flag should be boolean. We should discuss it.
 
 
 !!!! Process condition
@@ -693,8 +679,6 @@ mock stub someMessage shouldBeSentInAnotherProcess.
 [ mock someMessage ] fork. "will not fail".
 mock someMessage. "will fail immediately on call"
 ]]]
-
-
 
 
 !!!!Message sends usage rules
@@ -1015,6 +999,6 @@ mock2 someMessage2].
 - ""strict"" means that we want expected messages were happened in same order in which they were defined.
 
 
-!!!! Conclusion
+!!! Conclusion
 
-@todo put a conclusion
+@todo Do we need it? In BabyMock conclusion is that BabyMock is cool library :)). I would remove this sections from both places
