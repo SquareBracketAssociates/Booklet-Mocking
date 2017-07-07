@@ -2,27 +2,34 @@
 
 StateSpecs is object state specification framework. It describes particular object states by first class specifications.
 For example there are SpecOfCollectionItem, SpecOfObjectClass and SpecOfObjectSuperclass.
+StateSpecs provide readable DSL to validate objects over these specification.
+
+!!! How to load StateSpecs
 
 [[[
 Gofer it
-   smalltalkhubUser: 'dionisiy' project: 'Mocketry';
-   configurationOf: 'Mocketry';
+   smalltalkhubUser: 'dionisiy' project: '';
+   configurationOf: 'StateSpecs';
    loadStable
 ]]]
 
-@@todo explain how to load it.
-
 !!! Basic
 
-@@todo how to get it work? should we define a test? how?
-
-Specification can match and validate given objects. In case when object does not satisfied a specification you will get failure result with detailed information about the problem.
+Specifications can match and validate objects. In case when object does not satisfied a specification you will get failure result with detailed information about the problem.
+For example try create SpecOfObjectClass and validate objects over it.
 
 [[[
-spec matches: anObject.
-spec validate: anObject. "it returns validation result which can be success or particular failure"
+spec := SpecOfObjectClass requiredClass: SmallInteger.
+spec validate: 10. "it returns SpecOfValidationSuccess"
+spec validate: "some string". "it returns SpecOfValidationFailure which represent error"
 ]]]
 
+Instead of validation you can simply match objects for specification to get true or false:
+
+[[[
+spec matches: 10. "==> true"
+spec matches: "string". "==> false"
+]]]
 
 To easily create specifications and validate objects by them StateSpecs provides two kind DSL: should expressions and "word" classes.
 First allows you to write "assertions":
@@ -35,10 +42,21 @@ First allows you to write "assertions":
 And second allows you to instantiate specs by natural readable words:
 
 [[[
-Kind of: Number
-Instance of: String
-Equal to: 'test'
+Kind of: Number. "==> a SpecOfObjectSuperclass(should be a kind of Number)"
+Instance of: String. "==> a SpecOfObjectClass(should be an instance of String)"
+Equal to: 'test'. "==> a SpecOfEquality(should equal 'test')"
 ]]]
+
+Underhood should expression creates particular kind of specification and verify receiver over it.
+
+When object is not valid should expression signals SpecOfFailed error. Then in debugger you can inspect validation result to deeply analyze the reason.
+
+
+Should expressions were created with the goal to replace SUnit assertions (self assert: a = b). But they can be used anywhere.
+
+Word classes were introduced to get fluent interface for mock object expectations (mock stub someMessage: (Kind of: String)).
+
+But they are very handy shorcuts to work with specifications. For example in Seamless distributed objects framework they are used to specify transfer strategy for set of objects.
 
 !!! Should expressions
 
@@ -118,3 +136,4 @@ Should expressions signal special SpecOfFailed exception by concrete validation 
 !!! Conclusion
 
 Is it used in Mocketry?
+Mocketry uses StateSpecs to implement specifications of expected behaviour. For exampe it implements SpecOfMessageSend, SpecOfMessageArgument, SpecOfOrderedObjectsInteraction and others.
