@@ -88,6 +88,8 @@ Nowdays SSpec approach was ported to many languages (NSpec in C#, RSpec in Ruby 
 
 StateSpecs provides clean implementation for should expressions on top of first class specifications. It uses more pragmatic approach for "should syntax" to avoid magic over expressions to make them more explorable with standart development tools.
 
+To explore complete set of expressions look at SpecOfShouldExpression. It is also place where to extend them. SpecOfShouldExpressionTests describes them in tests.
+
 !!!! Specification of object identity
 
 ===#be:=== message is used to verify that receiver is identical to given argument:
@@ -404,4 +406,4 @@ For example Mocketry uses StateSpecs to implement specifications of expected beh
 
 Also StateSpecs is used in Seamless to specify transfer strategy for set of objects: network transferByValue: (Instance of: Array).
 
-Another interesting place where StateSpecs can be applied is user interface frameworks. It can be very suitable for editors to specify restrictions of object properties. 
+Another interesting place where StateSpecs can be applied is user interface frameworks. It can be very suitable for editors to specify restrictions of object properties.
