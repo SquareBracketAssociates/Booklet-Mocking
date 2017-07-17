@@ -5,10 +5,10 @@ Mocketry is an alternate mock framework developed by Denis Kudriashov. It provid
 !!! How to install Mocketry?
 
 [[[
-Gofer it
-   smalltalkhubUser: 'dionisiy' project: 'Mocketry';
-   configurationOf: 'Mocketry';
-   loadStable
+Metacello new
+  baseline: 'Mocketry';
+  repository: 'github://dionisiydk/Mocketry';
+  load.
 ]]]
 
 !!! About Test-Driven Development and Mock Objects

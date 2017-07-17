@@ -7,10 +7,10 @@ StateSpecs provides fluent DSL to validate objects over these specification.
 !!! How to load StateSpecs
 
 [[[
-Gofer it
-   smalltalkhubUser: 'dionisiy' project: 'StateSpecs';
-   configurationOf: 'StateSpecs';
-   loadStable
+Metacello new
+  baseline: 'StateSpecs';
+  repository: 'github://dionisiydk/StateSpecs';
+  load.
 ]]]
 
 !!! Basic
