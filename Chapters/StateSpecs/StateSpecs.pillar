@@ -76,14 +76,14 @@ Underhood should expression creates particular kind of specification and verify 
 
 When object is not valid should expression signals SpecOfFailed error. Then in debugger you can inspect validation result to deeply analyze the reason.
 
-Sending extra ===#not=== message after ===should=== inverts following expression:
+Sending extra ===#not=== message after ===should=== inverts logic of following expression:
 
 [[[
 3 should not equal: 3. "fail with message: Got '3' but it should not equal '3'"
 ]]]
 
 Should expressions were created with the goal to replace SUnit assertions (self assert: a = b).
-They were originally invented by Dave Astels in project SSpec as part of general rethinking of TDD methadology in flavor of BDD.
+They were originally invented by Dave Astels in project SSpec as part of general rethinking of TDD methodology in flavor of BDD.
 Nowdays SSpec approach was ported to many languages (NSpec in C#, RSpec in Ruby for example).
 
 StateSpecs provides clean implementation for should expressions on top of first class specifications. It uses more pragmatic approach for "should syntax" to avoid magic over expressions to make them more explorable with standart development tools.
