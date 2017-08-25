@@ -1,18 +1,28 @@
 sudo: required
 services:
-- docker
+  - docker
 
-before_install:
-- docker pull dpollet/texlive:pillar
+install: docker pull dpollet/texlive:pillar
 
-script:
-- docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar make spiral
+script: |
+  docker run --tty --rm --volume $PWD:/work dpollet/texlive:pillar bash -c "\
+    wget --quiet --output-document=- 'https://raw.githubusercontent.com/pillar-markup/pillar/master/download.sh' | bash \
+    && make spiralbook \
+  "
 
 deploy:
-  provider: releases
-  api_key:
-    secure: CdXv8nKaauMyDQZDJRLeuI3xoTI00uZaKYEFceii689Eq+wbUuhpSkI8qY/YGf7SVdPVOSSXEfdfToA5s792VoRC94k2wbSVTqcBlg7L1oVC4pml0tJMjnf2vWdzME5H4jqsXHdS4sfTew2jebGwp9j/KsV2BYZcca6ZdKGp/eAWrXZ7nD0UaFpwx+vqOXyqflxBrw9R+45vxGTqSCXvimCwR3SERi1sGOO3r16pV+BP8IXec5vE+zLByLWkigEJHJsDeeiANxmR2nfm8+C9IawJgZtAuj9lYpymqRH3GKyW14KdlQQvyHVgUkfjU6mDUOQ7a1ayQruvhDdxiZN/grxRAa9EbiACfgIP1ovc9EqwW/bt/9jot1BAqxOV5G+5kosm4ifbnrO9gL/ZAhlMepSe0o/F4Sk+xJdq99gTQ7RaNSX2de6Nt+V0WPMajJHwm1J4ifbcJSrdORHvlgaSin+RcvWcHBIDDJzpZxtloV/ulNPg23yHlI9ntiwxc+ePzSk2R59h6yuvgtrbHMK26IONXyDcdFWeoQUKS6YxMikg/WY0wzhXIDJkVKCQb7DbjK6wzUpebDEkzPH5pPxUxLprxeiSMjKz8crO5tUhfugQTXjGFvf3dFhUAMxPOlzV/HIT1R/L4QE8BlB6MBvjihtzdZUBojK2w/V/KvlwDrU=
-  file: build/mocking.pdf
-  draft: true
+- provider: bintray
+  file: .bintray.json
   on:
     repo: SquareBracketAssociates/Booklet-Mocking
+  skip_cleanup: true
+  user: ducasse
+  key:
+    secure: n/OTnbpq0EfJzw5qUDZ+V3lPmoq3IxRh+70gPLWEDkSyFEYSJMe8+faHUMpOokNG+2EbxZm2vvWw93IMzKNGQwmZqoWlnIk8IUV6wzMVJLdPTdfzom+W9xYQZ8J2HAKqlI0d62qegs+fgYerVCRLRnlcfPpSkSDoeA7GxAcd1ZO//Lt3GJDWjy+6h4R49bMNQbaZFz+Vq8xa5Aktxiplil/Mj0vfFzneRoLtUFqEYNdfWZX/bZysMcrFDbpj/HiC/Mn2Ldo0NNc78OYnING14h+z9frmFAB5g9NG/ypCEZytBOJ/xX/4Pca7aliM2EQ84bEcnxZkj5rEZOP16Uy4SHKkF+srkZ+kRLZRuRCPx3jYkqwjrw1tjZ7oVgMRCn1cmVuj2vPc9cRXPbA8OkFYy5zwkIBa9cgnqrnBHSfOMIBbNxaAeN/wBlxvVFpr+tVm8zvreaqZ2dgRJokoWhxXX5bR0cO3UnkRt1kEo0FYr2/SqxbtKBl5IdwKdA+qrXOzHA3er/XRgwyAjkHhcHNBPQhOUb1A4l2nWH4zKiDpY3cqWc4qp2zg2DaSNkLo5QO5M204bLtWpYZc2aFHB/xqKW91za5rV8T1i4F56byBQYrKSgRvfU7LU2VYaZmoHj4B5++WX2T44kfUA4MrmnoghP1GneI+AIYw/lCJzSLxpfg=
+- provider: releases
+  file: build/mocking.spiral.pdf
+  on:
+    tags: true
+  skip_cleanup: true
+  api_key:
+    secure: pRfu3fr35BzqQDi1ul0SubPSwO8zcyIidqLRZPz3XIrH4qoy1Zgnq785dmB7ziNQqH+VJyh7askSFY3JLxL0d4P0eUgj2ZDIOhJsUQQ/ihevOBWbxlMOoEPjQfzA11l8WrNCQ566KrcYiISRi7bCg698kPTWSRwOmmvqXOJe5zGkuUbVmMNUV2oxaNV4JC8kVyVWHYy0nNMLEX/hzRZRh1+8K34/ds+fZ7irLrbDWMbKGHCyuLCSqv+zJJdu99nWLTclrCxFzK4DEHaMlFiO7wkUpyQLwZ38EDnb3E7iv045jSqCx3XB+DMRG1Da2/9BIXl0mho5ELdEvfGVAbjI2no5FWd0H1cs4/banAePCFnM7ZscJBaPWgVajB7EzrcADJUoxpmU6+6n1aIC3CnjscfAHqSAKGv8CO/Jh+Uirc8ATRpSqa73f2Nnj9tRCqwCOnFOCEzu0w5l3Ppz2Qpif04P+QbebZehSVaBJ4W01R2i8Rac3IuZDhZVaek1X24HFxUOd/rvHpbhz8eeANdnsWCTkAm+0sD+iKsWKICRMxFZfCK/SPldAcjXZsOsEMTqfx7ZWyCc7GeesQWcmW+z3shziyQd9tdeArJWLwacly3hH3WeyuUD5JyPF9klvDBtHgTVajdU4yp+3oXsrtTmetnBz+RESxQGdLgZRlQBQog=
