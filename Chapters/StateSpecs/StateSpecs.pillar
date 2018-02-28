@@ -278,6 +278,54 @@ To specify expected key in dictionary use ===#includeKey:=== message:
 
 It fails with message: Got a Dictionary{#key1->#value1} but it should include key #key2
 
+!!!! Specifications of string
+
+To specify the substring of expected string use ==includeSubstring:== message:
+
+[[[
+'some test string' should includeSubstring: 'test2'
+]]]
+
+It fails with message: Got 'some test string' but it should include 'test2'.
+
+
+To specify prefix of expected string use ==beginWith:== message:
+
+[[[
+'string for test' should beginWith: 'test'
+]]]
+
+It fails with message: Got 'string for test' but it should begin with 'test'.
+
+
+To specify suffix of expected string use ==endWith:== message:
+
+[[[
+'test string' should endWith: 'test'
+]]]
+
+It fails with message: Got 'test string' but it should end with 'test'.
+
+
+To specify regex expression which expected string should satisfy use ==matchRegex:== message:
+
+[[[
+'string for test' should matchRegex: '^test'
+]]]
+
+It fails with message: Got 'string for test' but it should match regex '^test'.
+
+
+By default all this specifications validate strings ignoring case.
+If you want case sensitive specs just add ==caseSensitive: true== keyword to all examples:
+
+[[[
+'some test string' should includeSubstring: 'Test' caseSensitive: true
+'test string' should beginWith: 'Test' caseSensitive: true
+'string for test' should endWith: 'Test' caseSensitive: true
+'test string' should matchRegex: '^Test' caseSensitive: true
+]]]
+
 !!!! Raising exception
 
 ===#raise:=== message allows specify expected failure of given block:
