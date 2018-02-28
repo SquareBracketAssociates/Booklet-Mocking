@@ -261,13 +261,25 @@ If fails with message: Got #(1 2) but it should include 10.
 It fails with message: Got 1 at key 1 of #(1 2) but should equal 10.
 
 
-Argument of #include:at: message can be specification itself:
+Argument of include messages can be specification itself:
 
 [[[
 #(1 2) should include: (Instance of: String) at: 1.
 ]]]
 
 It fails with message: Got 1 at key 1 of #(1 2) but should be an instance of String.
+
+[[[
+#(1 2) should include: (Instance of: String)
+]]]
+
+It fails with message: Got #(1 2) but should include (be an instance of String).
+
+[[[
+#(1 2) should include: [:each | each > 1]
+]]]
+
+It is succeed without error.
 
 
 To specify expected key in dictionary use ===#includeKey:=== message:
