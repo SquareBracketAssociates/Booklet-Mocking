@@ -1,6 +1,6 @@
 
-${inputFile:Chapters/BabyMock/BabyMock.pillar}$
+${inputFile:path=Chapters/BabyMock/BabyMock.pillar}$
 
-${inputFile:Chapters/Mocketry/Mocketry.pillar}$
+${inputFile:path=Chapters/Mocketry/Mocketry.pillar}$
 
-${inputFile:Chapters/StateSpecs/StateSpecs.pillar}$
+${inputFile:path=Chapters/StateSpecs/StateSpecs.pillar}$
