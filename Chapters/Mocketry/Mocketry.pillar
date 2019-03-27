@@ -41,18 +41,18 @@ order fillFrom: warehouse.
 warehouse should receive remove: 50 of: #product.
 ]]]
 
-!!!! TDD is not just about testing
+!!! TDD is not just about testing
 
 Test-Driven Development combined with mock objects supports good Object-Oriented design by emphasizing how the objects collaborates with each other rather than their internal implementation. Mock objects can help you discover object roles as well as design the communication protocols between the objects^^[1]^^.
 
 We'll describe how to use mock objects and outside-in TDD in practice. We're going to use SUnit as our test framework (we assume you're familiar with it) and Mocketry as our mock object library. This will be more like a message (or interaction) oriented approach of TDD, so we choose the example codes accordingly. Depending on what problem you're trying to solve and what design strategy you're following, you might want to use simple assertions instead of mocks and expectations. But in an object oriented code there are plenty of places where objects ''tell each other to do things''^^[2]^^ therefore mocks will come in handy.
 
-!!!! How does outside-in TDD work?
+!!! How does outside-in TDD work?
 
 We start with the action that triggers the behavior we want to implement and work our way from the outside towards the inside of the system. We work on one object at a time, and substitute its collaborator objects with mocks. Thus the interface of the collaborators are driven by the need of the object under test. We setup expectations on the mocks, which allows us to finish the implementation and testing of the object under test without the existence of concrete collaborators. After we finished an object, we can move on towards one of its collaborator and repeat the same process.
 Now In the following sections, we will develop a complete sample application written with TDD.
 
-!!!! Getting started
+!!! Getting started
 
 With SUnit you create test case classes by subclasing TestCase. Then in any test you can create mock by simple ""#new"" message:
 
@@ -81,11 +81,11 @@ Look at *@stubMessageSends* section for all detailes on Mocketry API.
 
 Now In the next sections, we will develop a complete sample application written with TDD.
 
-!!!! A simple shopping cart
+!!! A simple shopping cart
 
 Let's design a simple shopping cart that will calculate the price of the products and charge the customer's credit card. The total charge is calculated by subtracting the discount price from the total order amount. During this process we are going to discover several roles that mock objects will play.
 
-!!!! Writing our first test
+!!! Writing our first test
 
 After an incoming checkout message, the shopping cart will send a ==charge:== message to a credit card object if it is not empty. This outgoing message and its argument is what we need to test in order to verify the behaviour of our shopping cart.
 
@@ -113,7 +113,7 @@ ShoppingCart >> checkout
 
 Usually we want to start with a failing test because we want to be sure that the test is capable of failing, then we can write just enough production code pass the test. This is an exceptional case, so we'll keep an eye on this test and come back to this later.
 
-!!!! One product, no discount
+!!! One product, no discount
 
 Now let's add one product id (we'll call it SKU which is an abbreviation of stock keeping unit) to the shopping cart and check the price being sent to the credit card. But to do so we need to know the price of the product. It would be helpful if there were an object that could find out the price of an item by its SKU. We can bring this object to existence with the help of the mock library.
 
@@ -149,7 +149,9 @@ This test will fail if:
 
 This test gives us our first failure:
 
-'''a Mock(creditCard) never received charge: 80'''
+[[[
+a Mock(creditCard) never received charge: 80
+]]]
 
 Notice that Mocketry complains only about the missing ==charge:== message. It doesn't care about the ==priceOf:==. Stubbed behaviour is only used to simulate reaction of system on particular messages. Stubs do not add any requirements to tested behaviour. If business rules will require to check catalog for every ==checkout== operation then we will add extra assertion in our test. Or better we will add separate test to describe this aspect of system. But right now we don't care about it.
 Also imagine we're introducing a price caching mechanism in the shopping cart. So after we asked the price of a product we store it and next time we won't ask it again. This will not break our test.
@@ -177,7 +179,7 @@ ShoppingCart >> checkout
 		[creditCard charge: (priceCatalog priceOf: sku)]
 ]]]
 
-!!!! Many products, no discount
+!!! Many products, no discount
 
 The shopping cart that can hold only one product isn't particularly useful. The next test will force us to generalize our implementation.
 
@@ -196,12 +198,15 @@ ShoppingCartTest >> testChargingCardAfterBuyingManyProducts
 ]]]
 
 This generates a failure message:
-
-'''a Mock(creditCard) never received charge: 90'''.
+[[[
+a Mock(creditCard) never received charge: 90
+]]]
 
 And in debugger you can see what messages was actually sent between objects. For this select top item on stack pane of debugger. And then select ==subject== on variables pane. It will show single message:
 
-'''a Mock(creditCard) charge: 50 returned default mock(73422)'''.
+[[[
+a Mock(creditCard) charge: 50 returned default mock(73422)
+]]]
 
 The shopping cart keeps the last SKU only that's why it reports the wrong price. First we rename the ==sku== instance variable to ==skus== and intialize it to an empty ==OrderedCollection==.
 
@@ -259,7 +264,7 @@ ShoppingCart >> orderPrice
 	^ skus sum: [:each | priceCatalog priceOf: each]
 ]]]
 
-!!!! Removing a product
+!!! Removing a product
 
 The shopping cart should provide methods for removing a product. We don't want to test the internal state of the shopping cart, because it would make our tests brittle. We assume that the interface of the shopping cart is more stable than its implementation, so we want to couple our tests to the interface of the object under test. We can verify the behaviour by checking that a product removal is reflected in the price.
 
@@ -282,7 +287,7 @@ ShoppingCart >> removeSKU: aSymbol
 	skus remove: aSymbol.
 ]]]
 
-!!!! Products with discount price
+!!! Products with discount price
 
 We know that there are rules for calculating the discount price. Those rules take the total order amount into account. Luckily we don't need to worry about what exactly the rules are. Let's introduce a new mock that will play the role of the ==DiscountCalculator==.
 
@@ -328,7 +333,7 @@ Now the last test passed.
 Interesting that other tests will pass too while we are not mentioned ==discountCalculator== there. In these tests ==calculateDiscount:== message will be sent to mock object without explicit stub for it. In such cases (when stub behaviour is not specified) Mocketry returns new special mock as result of message. This mock plays role of zero in arithmetic operations and false in boolean logic. And in our case it will lead to zero result of ==calculateDiscount:==.
 It is very usefull behaviour which makes tests less brittle and allows to specify only needed requirement for given aspect of functionality. In our first tests we don't care about discount and tests continue work without it.
 
-!!!! Reusing the cart for different sales
+!!! Reusing the cart for different sales
 
 We want the shopping cart to unload itself after the checkout so we'll able to reuse the same instance over and over. We'll simulate two separated purchase in the next test to verify this behaviour. This will trigger two ==charge:== messages. We'll check if the correct price is sent when the shopping cart is in the correct state (==firstPurchase== or ==secondPurchase==).
 
@@ -349,12 +354,15 @@ ShoppingCartTest>>testUnloadsItselfAfterCheckout
 
 The test generates a failure message:
 
-'''a Mock(creditCard) never received charge: 30'''.
-
+[[[
+a Mock(creditCard) never received charge: 30
+]]]
 And in debugger you can see actual messages:
 
-'''a Mock(creditCard) charge: 10 returned default mock(73422)'''.
-'''a Mock(creditCard) charge: 40 returned default mock(34614)'''.
+[[[
+a Mock(creditCard) charge: 10 returned default mock(73422).
+a Mock(creditCard) charge: 40 returned default mock(34614).
+]]]
 
 But cleaning the ==skus== collection in the ==checkout== fixes the test.
 
@@ -368,7 +376,7 @@ ShoppingCart>>checkout
 		creditCard charge: orderPrice - discountPrice]
 ]]]
 
-!!!! Testing errors during checkout
+!!! Testing errors during checkout
 
 We expect the ==creditCard== to report ==PaymentError== when the payment was unsuccessful. When this happens, the shopping cart should not forget the content because we may want to retry the checkout later.
 
@@ -389,7 +397,9 @@ ShoppingCartTest>>testFirstPaymentFailedSecondSucceed
 
 The failure report is:
 
-'''a Mock(creditCard) should receive charge: 10 2 times but it was 1 times'''
+[[[
+a Mock(creditCard) should receive charge: 10 2 times but it was 1 times
+]]]
 
 The test failed because we clean the ==skus== collection before charging the credit card. So after the first checkout the shopping cart is empty, and the second time it won't charge the credit card.
 
@@ -405,7 +415,7 @@ ShoppingCart>>checkout
 		skus removeAll]
 ]]]
 
-!!!! What's next
+!!! What's next
 
 We finished the shopping cart, so what's next? We can continue with either of its dependencies: ==CreditCard==, ==PriceCatalog==, ==DiscountCalculator==.
 
@@ -490,7 +500,7 @@ Note that ==stub== message activates,  message interception for real objects. Wi
 rect area should be: 300.
 ]]]
 
-!!!! Stubbing classes
+!!! Stubbing classes
 
 And you can do this with globals and classes too but this can be dangerous.
 [[[
@@ -517,7 +527,7 @@ DateAndTime recoverFromGHMutation.
 In case when you stub a global inside test Mocketry will automatically recover all global stubs when test completes.
 
 
-!!!! Expectations for set of objects
+!!! Expectations for set of objects
 
 Also with Mocketry you can define expectations for set of objects. For example you can stub message to ""ANY object"":
 
@@ -569,7 +579,7 @@ rect2 area should be: 500
 ]]]
 
 
-!!!!Stub message sends with arguments
+!!! Stub message sends with arguments
 
 In place of message arguments you can use expected objects itself. Or you can put specifications for expected arguments:
 
@@ -709,7 +719,7 @@ mock someMessage should be: #default
 
 
 
-!!!!Unexpected messages: Automocks
+!!! Unexpected messages: Automocks
 
 Mock returns another special mock for unexpected messages (when no expectation is defined for received message):
 
@@ -746,7 +756,7 @@ returnedMock should equal: 0
 ]]]
 
 
-!!!!Stub group of message sends
+!!! Stub group of message sends
 
 There is way to stub multiple message sends at once:
 [[[
@@ -762,7 +772,7 @@ rect area should be: 3000.
 ]]]
 Inside "should expect" block you don't need to send ""extra #stub"" message to objects
 
-!!!!Verify message sends
+!!!Verify message sends
 
 With Mocketry you can check that particular object received particular message. Use """should receive""" expression for this:
 [[[
@@ -827,6 +837,7 @@ rect width.
 Any should receive anyMessage. "will not fail because both objects received at least one message"
 ]]]
 ""Any"" class is specific object spec which means "any" object. You can uses any kind of specs to verify message send for set of objects:
+
 [[[
 rect := 0@0 corner: 2@3.
 rect stub.
@@ -842,7 +853,8 @@ rect2 width.
 mock := Mock new.
 (Kind of: Rectangle) should receive width. "will not fail because mock is not kind of Rectangle"
 ]]]
-!!!! Verify message sends with arguments
+
+!!! Verify message sends with arguments
 
 In place of message arguments you can use expected objects itself. Or you can put specifications for expected arguments:
 [[[
@@ -857,7 +869,8 @@ mock should receive messageWith: 'test'.
 mock should receive messageWith: (Kind of: String).
 mock should receive messageWith: [:arg | arg isNumber].
 ]]]
-!!!!Capture message arguments
+
+!!! Capture message arguments
 Mocketry provides suitable tool to capture arguments of messages for subsequent verification:
 [[[
 mock := Mock new.
@@ -895,7 +908,7 @@ rect area.
 Arg rectangle should be: rect.
 Arg rectangle should receive width.
 ]]]
-!!!! Verify message sends count
+!!! Verify message sends count
 
 Mocketry allows one to verify how many times object received particular message:
 [[[
@@ -926,7 +939,8 @@ Any should receive someMessage twice. "will fail because mock2 received #someMes
 mock2 someMessage.
 Any should receive someMessage twice. "will not fail because both mocks received #someMessage twice"
 ]]]
-!!!!Verify message send result
+
+!!!Verify message send result
 There are two ways how to verify result of occurred message:
 
 First you can continue "should receive" expression with "which should" clause to validate actual returned value:
@@ -948,7 +962,7 @@ result := mock someMessage.
 result should beReturnedFrom: [ mock someMessage ].
 ]]]
 
-!!!!Verify group of message sends
+!!!Verify group of message sends
 
 There is way to verify group of message sends at once:
 
@@ -972,7 +986,7 @@ Messages
 
 - ""beDoneInOrder"" verifies that messages were set in same order as they defined inside given block
 
-!!!!Verify all expectations
+!!!Verify all expectations
 There is way how to verify that all defined expectations were occurred:
 [[[
 mock1 := Mock new.
@@ -997,3 +1011,7 @@ mock2 someMessage2].
 ]]]
 
 - ""strictly"" means that we want expected messages were happened in same order in which they were defined.
+
+!!! Conclusion
+
+Mocketry is a powerful system and we hope that it will help you to improve your tests and development. 
