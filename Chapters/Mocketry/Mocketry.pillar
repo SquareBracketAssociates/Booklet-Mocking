@@ -1,6 +1,7 @@
 !! Mocketry
 
-Mocketry is an alternate mock framework developed by Denis Kudriashov. It provides simplest way to stub any message to any object and to verify any occurred behaviour.
+Mocketry is an alternate mock framework developed by Denis Kudriashov.
+It provides simplest way to stub any message to any object and to verify any occurred behaviour.
 
 !!! How to install Mocketry?
 
@@ -943,7 +944,7 @@ Any should receive someMessage twice. "will not fail because both mocks received
 !!!Verify message send result
 There are two ways how to verify result of occurred message:
 
-First you can continue "should receive" expression with "which should" clause to validate actual returned value:
+First you can continue ==should receive== expression with ==which should== clause to validate actual returned value:
 [[[
 rect := 0@0 corner: 2@3.
 rect stub.
@@ -953,12 +954,12 @@ rect area.
 rect should receive area which should equal: 6.
 rect should receive width which should beKindOf: Number
 ]]]
+
 And you can validate sender message of any object:
+
 [[[
 mock := Mock new.
-
 result := mock someMessage.
-
 result should beReturnedFrom: [ mock someMessage ].
 ]]]
 
@@ -982,8 +983,7 @@ rect width ] should beDoneInOrder.
 ]]]
 
 Messages
-- ""beDone"" don't care about order of message sends.
-
+- ""beDone"" measn that we don't care about order of message sends.
 - ""beDoneInOrder"" verifies that messages were set in same order as they defined inside given block
 
 !!!Verify all expectations
@@ -992,10 +992,10 @@ There is way how to verify that all defined expectations were occurred:
 mock1 := Mock new.
 mock2 := Mock new.
 
-[mock1 someMessage. mock2 someMessage2]
+[ mock1 someMessage. mock2 someMessage2 ]
    should lenient satisfy:
 [ mock2 someMessage2.
-mock1 someMessage willReturn: 'some'].
+mock1 someMessage willReturn: 'some' ].
 ]]]
 
 
@@ -1004,10 +1004,10 @@ mock1 someMessage willReturn: 'some'].
 mock1 := Mock new.
 mock2 := Mock new.
 
-[mock1 someMessage. mock2 someMessage2]
+[ mock1 someMessage. mock2 someMessage2 ]
    should strictly satisfy:
 [ mock1 someMessage willReturn: 'some'.
-mock2 someMessage2].
+mock2 someMessage2 ].
 ]]]
 
 - ""strictly"" means that we want expected messages were happened in same order in which they were defined.
