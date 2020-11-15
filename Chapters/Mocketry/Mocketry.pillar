@@ -5,6 +5,7 @@ It provides simplest way to stub any message to any object and to verify any occ
 
 !!! How to install Mocketry?
 
+You can install Mocketry using the following expression
 [[[
 Metacello new
   baseline: 'Mocketry';
@@ -44,9 +45,9 @@ warehouse should receive remove: 50 of: #product.
 
 !!! TDD is not just about testing
 
-Test-Driven Development combined with mock objects supports good Object-Oriented design by emphasizing how the objects collaborates with each other rather than their internal implementation. Mock objects can help you discover object roles as well as design the communication protocols between the objects^^[1]^^.
+Test-Driven Development combined with mock objects supports good Object-Oriented design by emphasizing how the objects collaborates with each other rather than their internal implementation. Mock objects can help you discover object roles as well as design the communication protocols between the objects.
 
-We'll describe how to use mock objects and outside-in TDD in practice. We're going to use SUnit as our test framework (we assume you're familiar with it) and Mocketry as our mock object library. This will be more like a message (or interaction) oriented approach of TDD, so we choose the example codes accordingly. Depending on what problem you're trying to solve and what design strategy you're following, you might want to use simple assertions instead of mocks and expectations. But in an object oriented code there are plenty of places where objects ''tell each other to do things''^^[2]^^ therefore mocks will come in handy.
+We'll describe how to use mock objects and outside-in TDD in practice. We're going to use SUnit as our test framework (we assume you're familiar with it) and Mocketry as our mock object library. This will be more like a message (or interaction) oriented approach of TDD, so we choose the example codes accordingly. Depending on what problem you're trying to solve and what design strategy you're following, you might want to use simple assertions instead of mocks and expectations. But in an object oriented code there are plenty of places where objects ''tell each other to do things'' therefore mocks will come in handy.
 
 !!! How does outside-in TDD work?
 
